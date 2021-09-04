@@ -85,3 +85,14 @@ diff -r -u -w lua-5.3.5/src/lprefix.h lua-5.3.5-patched/src/lprefix.h
  
  /*
  ** Allows POSIX/XSI stuff
+--- lua-5.3.5/configure.ac	2021-09-03 14:17:53.476080800 +0000
++++ lua-5.3.5-patched/configure.ac	2021-09-03 14:18:10.384945600 +0000
+@@ -51,7 +51,7 @@
+   LUA_DL_DEFS="#define LUA_DL_DYLD"
+ elif test "x$use_os" == "xposix"; then
+   POSIX_DEFS="#define LUA_USE_POSIX"
+-  LUA_DL_DEFS="#define LUA_DL_DLOPEN"
++  LUA_DL_DEFS="#define LUA_USE_DLOPEN"
+   LUA_LIBS="$LUA_LIBS -ldl"
+ fi
+ AC_SUBST(POSIX_DEFS)

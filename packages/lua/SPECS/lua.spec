@@ -24,7 +24,7 @@
 
 Name:           lua
 Version:        %{major_version}.5
-Release:        8%{?dist}
+Release:        9%{?dist}
 Summary:        Powerful light-weight programming language
 License:        MIT
 URL:            http://www.lua.org/
@@ -239,6 +239,9 @@ install -Dpm 0644 %{SOURCE1000} $RPM_BUILD_ROOT/%{macrosdir}/macros.lua
 
 
 %changelog
+* Fri Sep 03 2021 Vladimir Vukicevic <vladimir@pobox.com> - 5.3.5-9
+- Fix DL_DLOPEN to USE_DLOPEN
+
 * Sat Dec 12 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.5-8
 - Stop using "optimised" link flags, causes failure to link with readline
 
