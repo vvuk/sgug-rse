@@ -46,8 +46,6 @@ rm -vf %{buildroot}%{_libdir}/*.{a,la}
 %check
 make test
 
-%ldconfig_scriptlets
-
 %files
 %license LGPLv3
 %doc Changes
