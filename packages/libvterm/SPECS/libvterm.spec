@@ -46,9 +46,10 @@ rm -vf %{buildroot}%{_libdir}/*.{a,la}
 
 %check
 %set_build_flags
+LD_LIBRARYN32_PATH=%{buildroot}/%{_libdir} ; export LD_LIBRARYN32_PATH ;
 make test
 
-%ldconfig_scriptlets
+#%%ldconfig_scriptlets
 
 %files
 %license LICENSE
