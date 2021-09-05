@@ -1,0 +1,44 @@
+diff -ru orig/fdupes-2.1.1/fdupes.c fdupes-2.1.1/fdupes.c
+--- orig/fdupes-2.1.1/fdupes.c	2020-07-02 19:24:13.000000000 +0000
++++ fdupes-2.1.1/fdupes.c	2021-09-04 11:28:49.202363200 +0000
+@@ -20,6 +20,10 @@
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
+ 
+ #include "config.h"
++#if defined(__sgi)
++#undef HAVE_GETOPT_H
++#endif
++
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include <string.h>
+diff -ru orig/fdupes-2.1.1/md5/md5.c fdupes-2.1.1/md5/md5.c
+--- orig/fdupes-2.1.1/md5/md5.c	2020-07-02 19:24:13.000000000 +0000
++++ fdupes-2.1.1/md5/md5.c	2021-09-04 11:42:21.345719200 +0000
+@@ -50,6 +50,8 @@
+ /* endianness check using glibc endian.h */
+ #ifdef __APPLE__
+ # include <machine/endian.h>
++#elif defined(__sgi)
++# include <sys/endian.h>
+ #else
+ # include <endian.h>
+ #endif
+
+diff -ru orig/fdupes-2.1.1/ncurses-interface.c fdupes-2.1.1/ncurses-interface.c
+--- orig/fdupes-2.1.1/ncurses-interface.c	2020-07-02 19:24:13.000000000 +0000
++++ fdupes-2.1.1/ncurses-interface.c	2021-09-04 11:41:20.005584800 +0000
+@@ -43,6 +43,12 @@
+ #include "sigint.h"
+ #include "flags.h"
+ 
++#if defined(__sgi)
++/* no idea why I can't get this from wchar.h, gated by _SGIAPI */
++extern wchar_t  *wcstok_r(wchar_t *, const wchar_t *, wchar_t **);
++#define wcstok wcstok_r
++#endif
++
+ char *fmttime(time_t t);
+ 
+ enum linestyle
+
