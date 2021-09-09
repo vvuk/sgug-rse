@@ -1,0 +1,73 @@
+diff -r -u orig/lua-5.1.5/Makefile.autoxxx lua-5.1.5/Makefile.autoxxx
+--- orig/lua-5.1.5/Makefile.autoxxx	2021-09-06 20:00:01.033892800 +0000
++++ lua-5.1.5/Makefile.autoxxx	2021-09-06 20:00:32.835140800 +0000
+@@ -5,20 +5,20 @@
+ # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+ 
+ # Your platform. See PLATS for possible values.
+-PLAT= none
++PLAT=posix
+ 
+ # Where to install. The installation starts in the src and doc directories,
+ # so take care if INSTALL_TOP is not an absolute path.
+-INSTALL_TOP= /usr/local
++INSTALL_TOP= $(INSTALLDIR)
+ INSTALL_BIN= $(INSTALL_TOP)/bin
+ INSTALL_INC= $(INSTALL_TOP)/include
+-INSTALL_LIB= $(INSTALL_TOP)/lib
++INSTALL_LIB= $(INSTALL_TOP)/$(DIDBS_LIBDIR)
+ INSTALL_MAN= $(INSTALL_TOP)/man/man1
+ #
+ # You probably want to make INSTALL_LMOD and INSTALL_CMOD consistent with
+ # LUA_ROOT, LUA_LDIR, and LUA_CDIR in luaconf.h (and also with etc/lua.pc).
+ INSTALL_LMOD= $(INSTALL_TOP)/share/lua/$V
+-INSTALL_CMOD= $(INSTALL_TOP)/lib/lua/$V
++INSTALL_CMOD= $(INSTALL_TOP)/$(DIDBS_LIBDIR)/lua/$V
+ 
+ # How to install. If your install program does not support "-p", then you
+ # may have to run ranlib on the installed liblua.a (do "make ranlib").
+diff -r -u orig/lua-5.1.5/configure.ac lua-5.1.5/configure.ac
+--- orig/lua-5.1.5/configure.ac	2021-09-06 20:00:01.043048000 +0000
++++ lua-5.1.5/configure.ac	2021-09-06 20:10:11.818745600 +0000
+@@ -21,13 +21,13 @@
+ # Check for readline
+ READLINE_DEFS="#undef LUA_USE_READLINE"
+ if test "x$use_readline" == "xyes"; then
+-  AC_CHECK_LIB([readline], [readline], [], [use_readline=no], [-lncurses])
++  AC_CHECK_LIB([readline], [readline], [], [use_readline=no], [-lncurses -ltinfo])
+   AC_CHECK_HEADERS([readline/readline.h readline/history.h], [], [use_readline=no])
+   if test "x$use_readline" == "xno"; then
+     AC_MSG_WARN([readline headers could not be found, disabling readline support])
+   else
+     READLINE_DEFS="#define LUA_USE_READLINE"
+-    LUA_LIBS="$LUA_LIBS -lreadline -lncurses"
++    LUA_LIBS="$LUA_LIBS -lreadline -lncurses -ltinfo"
+   fi
+ fi
+ AC_SUBST(READLINE_DEFS)
+diff -r -u orig/lua-5.1.5/src/Makefile.autoxxx lua-5.1.5/src/Makefile.autoxxx
+--- orig/lua-5.1.5/src/Makefile.autoxxx	2021-09-06 20:00:01.102289600 +0000
++++ lua-5.1.5/src/Makefile.autoxxx	2021-09-06 20:08:56.144186400 +0000
+@@ -5,17 +5,18 @@
+ # == CHANGE THE SETTINGS BELOW TO SUIT YOUR ENVIRONMENT =======================
+ 
+ # Your platform. See PLATS for possible values.
+-PLAT= none
++PLAT=posix
+ 
+-CC= gcc
+-CFLAGS= -O2 -Wall $(MYCFLAGS)
++CC=$(DIDBS_LUA_CC)
++CFLAGS=$(DIDBS_LUA_CFLAGS) -Wall -Wextra -DLUA_USE_DLOPEN $(SYSCFLAGS) $(MYCFLAGS)
++LDFLAGS= 
+ AR= ar rcu
+ RANLIB= ranlib
+ RM= rm -f
+ LIBS= -lm $(MYLIBS)
+ 
+ MYCFLAGS=
+-MYLDFLAGS=
++MYLDFLAGS=$(DIDBS_LUA_LDFLAGS) $(SYSLDFLAGS) $(MYLDFLAGS)
+ MYLIBS=
+ 
+ # == END OF USER SETTINGS. NO NEED TO CHANGE ANYTHING BELOW THIS LINE =========

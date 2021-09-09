@@ -37,7 +37,7 @@ diff -r -u -w lua-5.3.5/src/Makefile lua-5.3.5-patched/src/Makefile
 -CFLAGS= -O2 -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
 -LDFLAGS= $(SYSLDFLAGS) $(MYLDFLAGS)
 +CC=$(DIDBS_LUA_CC)
-+CFLAGS=$(DIDBS_LUA_CFLAGS) -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
++CFLAGS=$(DIDBS_LUA_CFLAGS) -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_DLOPEN $(SYSCFLAGS) $(MYCFLAGS)
 +LDFLAGS= $(DIDBS_LUA_LDFLAGS) $(SYSLDFLAGS) $(MYLDFLAGS)
  LIBS= -lm $(SYSLIBS) $(MYLIBS)
  
@@ -51,17 +51,6 @@ diff -r -u -w lua-5.3.5/src/Makefile lua-5.3.5-patched/src/Makefile
  	@echo "LIBS= $(LIBS)"
  	@echo "AR= $(AR)"
  	@echo "RANLIB= $(RANLIB)"
-diff -r -u -w lua-5.3.5/src/loslib.c lua-5.3.5-patched/src/loslib.c
---- lua-5.3.5/src/loslib.c	2017-04-19 18:29:57.000000000 +0000
-+++ lua-5.3.5-patched/src/loslib.c	2019-10-22 12:03:16.193666120 +0000
-@@ -7,6 +7,7 @@
- #define loslib_c
- #define LUA_LIB
- 
-+
- #include "lprefix.h"
- 
- 
 diff -r -u -w lua-5.3.5/src/lprefix.h lua-5.3.5-patched/src/lprefix.h
 --- lua-5.3.5/src/lprefix.h	2017-04-19 18:20:42.000000000 +0000
 +++ lua-5.3.5-patched/src/lprefix.h	2019-10-22 12:03:16.196629800 +0000
@@ -85,14 +74,3 @@ diff -r -u -w lua-5.3.5/src/lprefix.h lua-5.3.5-patched/src/lprefix.h
  
  /*
  ** Allows POSIX/XSI stuff
---- lua-5.3.5/configure.ac	2021-09-03 14:17:53.476080800 +0000
-+++ lua-5.3.5-patched/configure.ac	2021-09-03 14:18:10.384945600 +0000
-@@ -51,7 +51,7 @@
-   LUA_DL_DEFS="#define LUA_DL_DYLD"
- elif test "x$use_os" == "xposix"; then
-   POSIX_DEFS="#define LUA_USE_POSIX"
--  LUA_DL_DEFS="#define LUA_DL_DLOPEN"
-+  LUA_DL_DEFS="#define LUA_USE_DLOPEN"
-   LUA_LIBS="$LUA_LIBS -ldl"
- fi
- AC_SUBST(POSIX_DEFS)

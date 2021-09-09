@@ -9,6 +9,7 @@ Patch0:         lua-5.1.4-autotoolize.patch
 Patch1:         lua-5.1.4-lunatic.patch
 Patch2:         lua-5.1.4-idsize.patch
 Patch3:         lua-5.1.4-pc-compat.patch
+Patch20:        lua51.sgifixes.patch
 BuildRequires:  readline-devel ncurses-devel libtool
 Requires:       %{name}-libs%{?_isa} = %{version}-%{release}
 Provides:       lua = 5.1
@@ -45,6 +46,7 @@ This package contains development files for compat-lua-libs.
 %patch1 -p0 -z .lunatic
 %patch2 -p1 -z .idsize
 %patch3 -p1
+#%patch20 -p1 -b .sgifixes
 # fix perms on auto files
 chmod u+x autogen.sh config.guess config.sub configure depcomp install-sh missing
 # Avoid make doing auto-reconf itself, killing our rpath removal in the process
@@ -52,6 +54,8 @@ autoreconf -i -f
 
 
 %build
+export CFLAGS="-I/usr/sgug/include/libdicl-0.1"
+export LDFLAGS="-ldicl-0.1"
 %configure --with-readline
 sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
 sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
@@ -81,7 +85,7 @@ mv $RPM_BUILD_ROOT%{_libdir}/pkgconfig/lua.pc \
   $RPM_BUILD_ROOT%{_libdir}/pkgconfig/lua-5.1.pc
 
 
-%ldconfig_scriptlets libs
+#%%ldconfig_scriptlets libs
 
 
 %files

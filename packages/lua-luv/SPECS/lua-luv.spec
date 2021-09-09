@@ -1,7 +1,5 @@
 %global _buildshell /usr/sgug/bin/bash
 
-%bcond_with oldlua
-
 %global lua_53_version 5.3
 %global lua_53_incdir %{_includedir}/lua-%{lua_53_version}
 %global lua_53_libdir %{_libdir}/lua/%{lua_53_version}
@@ -22,11 +20,9 @@ BuildRequires:  gcc
 BuildRequires:  libuv-devel
 BuildRequires:  lua >= %{lua_53_version}
 BuildRequires:  lua-devel >= %{lua_53_version}
-%if %{with oldlua}
 BuildRequires:  compat-lua >= %{lua_51_version}
 BuildRequires:  compat-lua-devel >= %{lua_51_version}
 BuildRequires:  lua5.1-compat53
-%endif
 
 Name:           lua-luv
 Version:        %{real_version}.%{extra_version}
@@ -68,7 +64,6 @@ Requires:       lua-luv%{?_isa} = %{version}-%{release}
 %description devel
 Files required for lua-luv development
 
-%if %{with oldlua}
 %package -n lua5.1-luv
 Summary:        Bare libuv bindings for lua 5.1
 Requires:       lua(abi) = %{lua_51_version}
@@ -92,7 +87,6 @@ Requires:       lua5.1-luv%{?_isa} = %{version}-%{release}
 
 %description -n lua5.1-luv-devel
 Files required for lua5.1-luv development
-%endif
 
 %prep
 %autosetup -p1 -n luv-%{real_version}-%{extra_version}
@@ -119,7 +113,6 @@ pushd %{lua_53_builddir}
 %make_build
 popd
 
-%if %{with oldlua}
 # lua-compat
 mkdir %{lua_51_builddir}
 
@@ -137,7 +130,6 @@ pushd %{lua_51_builddir}
 
 %make_build
 popd
-%endif
 
 %install
 # lua-5.3
@@ -149,7 +141,6 @@ for f in lhandle.h lreq.h luv.h util.h; do
     install -m 0644 -p src/$f %{buildroot}%{lua_53_incdir}/luv/$f
 done
 
-%if %{with oldlua}
 # lua-5.1
 install -d -m 0755 %{buildroot}%{lua_51_libdir}
 install -m 0755 -p %{lua_51_builddir}/luv.so %{buildroot}%{lua_51_libdir}/luv.so
@@ -164,7 +155,6 @@ done
 ln -sf %{lua_51_builddir}/luv.so luv.so
 lua-5.1 tests/run.lua
 rm luv.so
-%endif
 
 %files
 %doc README.md
@@ -179,7 +169,6 @@ rm luv.so
 %{lua_53_incdir}/luv/luv.h
 %{lua_53_incdir}/luv/util.h
 
-%if %{with oldlua}
 %files -n lua5.1-luv
 %doc README.md
 %license LICENSE.txt
@@ -192,7 +181,6 @@ rm luv.so
 %{lua_51_incdir}/luv/lreq.h
 %{lua_51_incdir}/luv/luv.h
 %{lua_51_incdir}/luv/util.h
-%endif
 
 %changelog
 * Tue Apr 28 2020 Michel Alexandre Salim <salimma@fedoraproject.org> - 1.36.0.0-1

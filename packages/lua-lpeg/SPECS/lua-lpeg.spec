@@ -1,3 +1,5 @@
+%global _buildshell /usr/sgug/bin/bash
+
 %global lua_pkg_name lpeg
 
 %global lua_version 5.3
@@ -31,24 +33,31 @@ Requires:       lua >= %{lua_version}
 LPeg is a new pattern-matching library for Lua, based on Parsing Expression
 Grammars (PEGs).
 
-%package -n lua%{lua_version}-%{lua_pkg_name}
-Summary:        Parsing Expression Grammars for Lua %{lua_version}
+%package -n lua%{lua_compat_version}-%{lua_pkg_name}
+Summary:        Parsing Expression Grammars for Lua %{lua_compat_version}
 Provides:       compat-%{name}
-BuildRequires:  lua-devel >= %{lua_version}
+BuildRequires:  compat-lua-devel >= %{lua_compat_version}
 %if 0%{?fedora} || 0%{?rhel} >= 7
-Requires:       lua(abi) = %{lua_version}
+Requires:       lua(abi) = %{lua_compat_version}
 %else
-Requires:       lua >= %{lua_version}
+Requires:       lua >= %{lua_compat_version}
 %endif
 
-%description -n lua%{lua_version}-%{lua_pkg_name}
-LPeg is a new pattern-matching library for Lua %{lua_version}
+%description -n lua%{lua_compat_version}-%{lua_pkg_name}
+LPeg is a new pattern-matching library for Lua %{lua_compat_version}
 
 %prep
 %autosetup -n %{lua_pkg_name}-%{version}
 
+rm -rf %{lua_compat_builddir}
+cp -a . %{lua_compat_builddir}
+
 %build
 make %{?_smp_mflags} COPT="%{optflags}" LDFLAGS="%{build_ldflags}"
+
+pushd %{lua_compat_builddir}
+make %{?_smp_mflags} COPT="-I%{_includedir}/lua-%{lua_compat_version} %{optflags}" LDFLAGS="-L%{lua_compat_libdir} %{build_ldflags}"
+popd
 
 %install
 %{__rm} -rf %{buildroot}
@@ -59,6 +68,15 @@ make %{?_smp_mflags} COPT="%{optflags}" LDFLAGS="%{build_ldflags}"
 %{__ln_s} lpeg.so.%{version} %{buildroot}%{lua_libdir}/lpeg.so
 %{__install} -p -m 0644 re.lua %{buildroot}%{lua_pkgdir}
 
+pushd %{lua_compat_builddir}
+%{__mkdir_p} %{buildroot}%{lua_compat_libdir}
+%{__mkdir_p} %{buildroot}%{lua_compat_pkgdir}
+%{__install} -p lpeg.so %{buildroot}%{lua_compat_libdir}/lpeg.so.%{version}
+%{__ln_s} lpeg.so.%{version} %{buildroot}%{lua_compat_libdir}/lpeg.so
+%{__install} -p -m 0644 re.lua %{buildroot}%{lua_compat_pkgdir}
+popd
+
+
 %check
 lua test.lua
 
@@ -66,6 +84,11 @@ lua test.lua
 %doc HISTORY lpeg.html re.html lpeg-128.gif test.lua
 %{lua_libdir}/*
 %{lua_pkgdir}/*
+
+%files -n lua%{lua_compat_version}-%{lua_pkg_name}
+%{lua_compat_libdir}/*
+%{lua_compat_pkgdir}/*
+
 
 %changelog
 * Thu Oct 24 2019 Tomas Krizek <tomas.krizek@nic.cz> - 1.0.2-1
