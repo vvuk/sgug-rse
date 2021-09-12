@@ -1,0 +1,43 @@
+Lua has some existing math bugs; I think that there's a broken int to float conversion happening.  Run "bug.lua" here
+with lua on IRIX, and compare output to lua on another machine.
+
+bug.lua, for reference:
+------
+
+function incd (n) -- increments number by adding one to the last character, as a string
+    local s = string.format("%d", n)
+    s = string.gsub(s, "%d$", function (d)
+          assert(d ~= '9')
+          return string.char(string.byte(d) + 1)
+        end)
+    return s
+end
+
+maxint = math.maxinteger
+
+print(maxint)
+print(incd(maxint))
+a = (tonumber(incd(maxint)))
+b = (maxint + 1.0)
+
+print(string.format("%.0f", a))
+print(string.format("%.0f", b))
+
+print(string.format("%.f", maxint + .0))
+--------
+
+IRIX, lua:
+
+9223372036854775807  <-- this is maxint, as integer
+9223372036854775808  <-- this is a string with the last digit incremented
+9223372036854775800  <-- wrong: last digits should not be 00.  this is that string converted to a number
+9223372036854775800  <-- wrong: last digits should not be 00.  this is maxint + 1.0
+9223372036854775800  <-- wrong: last digits should not be 00.  this is maxint, as a double
+
+x86_64:
+
+9223372036854775807
+9223372036854775808
+9223372036854775808
+9223372036854775808
+9223372036854775808
