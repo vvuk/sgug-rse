@@ -24,7 +24,7 @@
 
 Name:           lua
 Version:        %{major_version}.5
-Release:        8%{?dist}
+Release:        10%{?dist}
 Summary:        Powerful light-weight programming language
 License:        MIT
 URL:            http://www.lua.org/
@@ -39,7 +39,8 @@ Source3:        http://www.lua.org/tests/lua-%{test_version}-tests.tar.gz
 #Source4:        luaconf.h
 # rpm-macro
 Source1000:     macros.lua
-Patch0:         %{name}-5.3.0-autotoolize.patch
+Source1010:	lua.pc.in
+#Patch0:         %{name}-5.3.0-autotoolize.patch
 #Patch1:         %{name}-5.3.0-idsize.patch
 #Patch2:         %%{name}-5.3.0-luac-shared-link-fix.patch
 #Patch3:         %{name}-5.2.2-configure-linux.patch
@@ -53,9 +54,11 @@ Patch8:         %{name}-5.2.2-configure-compat-module.patch
 Patch9:         CVE-2019-6706-use-after-free-lua_upvaluejoin.patch
 
 Patch20:        lua.sgifixes.patch
-Patch21:        lua.sgifixreadlinelink.patch
+#Patch21:        lua.sgifixreadlinelink.patch
+Patch25:	lua.sgi2.patch
 
-BuildRequires:  automake autoconf libtool readline-devel ncurses-devel
+#BuildRequires:  automake autoconf libtool readline-devel ncurses-devel
+#BuildRequires:  readline-devel ncurses-devel
 Requires:       lua-libs = %{version}-%{release}
 
 %description
@@ -79,6 +82,7 @@ This package contains development files for %{name}.
 %package libs
 Summary:        Libraries for %{name}
 Provides:       lua(abi) = %{major_version}
+Provides:	liblua-%{major_version}.so
 
 %description libs
 This package contains the shared libraries for %{name}.
@@ -98,8 +102,8 @@ This package contains the static version of liblua for %{name}.
 %setup -q -a 3
 %endif
 cp %{SOURCE1} .
-mv src/luaconf.h src/luaconf.h.template.in
-%patch0 -p1 -E -z .autoxxx
+#mv src/luaconf.h src/luaconf.h.template.in
+#%patch0 -p1 -E -z .autoxxx
 #%patch1 -p1 -z .idsize
 #%% patch2 -p1 -z .luac-shared
 #%patch3 -p1 -z .configure-linux
@@ -107,12 +111,13 @@ mv src/luaconf.h src/luaconf.h.template.in
 %patch9 -p1 -b .CVE-2019-6706
 
 %patch20 -p1 -b .sgifixes
-%patch21 -p1 -b .sgifixreadlinelink
+#%patch21 -p1 -b .sgifixreadlinelink
+%patch25 -p1 -b .sgi2
 
 # Put proper version in configure.ac, patch0 hardcodes 5.3.0
-sed -i 's|5.3.0|%{version}|g' configure.ac
+#sed -i 's|5.3.0|%{version}|g' configure.ac
 
-autoreconf -ifv
+##autoreconf -ifv
 
 %if 0%{?bootstrap}
 cd lua-%{bootstrap_version}/
@@ -122,7 +127,7 @@ mv src/luaconf.h src/luaconf.h.template.in
 %patch7 -p1 -b .luac-shared
 %patch3 -p1 -z .configure-linux
 %patch8 -p1 -z .configure-compat-all
-autoreconf -i
+##autoreconf -i
 cd ..
 %endif
 
@@ -135,17 +140,14 @@ export CXXFLAGS="$CFLAGS"
 export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 %endif
 
-%configure --with-readline --with-compat-module
-#sed -i 's|^hardcode_libdir_flag_spec=.*|hardcode_libdir_flag_spec=""|g' libtool
-#sed -i 's|^runpath_var=LD_RUN_PATH|runpath_var=DIE_RPATH_DIE|g' libtool
-# Autotools give me a headache sometimes.
-sed -i 's|@pkgdatadir@|%{_datadir}|g' src/luaconf.h.template
+cat %{SOURCE1010} | sed -e 's|LUA_MAJOR_VERSION|%{major_version}|g' -e 's|LUA_TEST_VERSION|%{test_version}|g' > lua.pc
 
-# hack so that only /usr/bin/lua gets linked with readline as it is the
-# only one which needs this and otherwise we get License troubles
-make %{?_smp_mflags} LIBS="-lm -ldl"
+# we need this because irix strtod etc are broken
+export CFLAGS="$CFLAGS -O2 -g1 -I/usr/sgug/include/libdicl-0.1"
+export LDFLAGS="$LDFLAGS -ldicl-0.1 -ldl"
+export DIDBS_LIBDIR=lib32
 
-# only /usr/bin/lua links with readline now #luac_LDADD="liblua.la -lm -ldl"
+make %{?_smp_mflags} irix
 
 %if 0%{?bootstrap}
 cd lua-%{bootstrap_version}
@@ -181,8 +183,9 @@ sed -i.orig -e '
 LD_LIBRARY_PATH=$RPM_BUILD_ROOT/%{_libdir} $RPM_BUILD_ROOT/%{_bindir}/lua -e"_U=true" all.lua
 
 %install
-make install DESTDIR=$RPM_BUILD_ROOT
-rm $RPM_BUILD_ROOT%{_libdir}/*.la
+rm -rf $RPM_BUILD_ROOT
+make install INSTALLDIR=$RPM_BUILD_ROOT/usr/sgug DIDBS_LIBDIR=lib32
+ln -s liblua-%{major_version}.%{minor_version}.so $RPM_BUILD_ROOT%{_libdir}/liblua.so
 mkdir -p $RPM_BUILD_ROOT%{_libdir}/lua/%{major_version}
 mkdir -p $RPM_BUILD_ROOT%{_datadir}/lua/%{major_version}
 
@@ -204,6 +207,7 @@ cd ..
 
 # Install rpm-macro
 install -Dpm 0644 %{SOURCE1000} $RPM_BUILD_ROOT/%{macrosdir}/macros.lua
+install -Dpm 0644 lua.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/lua.pc
 
 %files
 %{!?_licensedir:%global license %%doc}
@@ -239,6 +243,9 @@ install -Dpm 0644 %{SOURCE1000} $RPM_BUILD_ROOT/%{macrosdir}/macros.lua
 
 
 %changelog
+* Fri Sep 03 2021 Vladimir Vukicevic <vladimir@pobox.com> - 5.3.5-9
+- Fix DL_DLOPEN to USE_DLOPEN
+
 * Sat Dec 12 2020 Daniel Hams <daniel.hams@gmail.com> - 5.3.5-8
 - Stop using "optimised" link flags, causes failure to link with readline
 
