@@ -1,0 +1,121 @@
+Index: lua-5.3.5/src/luaconf.h
+===================================================================
+--- lua-5.3.5.orig/src/luaconf.h
++++ lua-5.3.5/src/luaconf.h
+@@ -11,6 +11,10 @@
+ #include <limits.h>
+ #include <stddef.h>
+ 
++#define LUA_USE_POSIX
++#define LUA_USE_DLOPEN
++#define LUA_USE_READLINE
++#undef LUA_BUILD_AS_DLL
+ 
+ /*
+ ** ===================================================================
+@@ -200,9 +204,16 @@
+ 
+ #else			/* }{ */
+ 
+-#define LUA_ROOT	"/usr/local/"
++#define LUA_ROOT	"/usr/sgug/"
+ #define LUA_LDIR	LUA_ROOT "share/lua/" LUA_VDIR "/"
++#if _MIPS_SIM == _ABIN32
++#define LUA_CDIR	LUA_ROOT "lib32/lua/" LUA_VDIR "/"
++#elif _MIPS_SIM == _ABI64
++#define LUA_CDIR	LUA_ROOT "lib64/lua/" LUA_VDIR "/"
++#else
+ #define LUA_CDIR	LUA_ROOT "lib/lua/" LUA_VDIR "/"
++#endif
++
+ #define LUA_PATH_DEFAULT  \
+ 		LUA_LDIR"?.lua;"  LUA_LDIR"?/init.lua;" \
+ 		LUA_CDIR"?.lua;"  LUA_CDIR"?/init.lua;" \
+Index: lua-5.3.5/Makefile
+===================================================================
+--- lua-5.3.5.orig/Makefile
++++ lua-5.3.5/Makefile
+@@ -12,9 +12,9 @@ PLAT=posix
+ # LUA_ROOT, LUA_LDIR, and LUA_CDIR in luaconf.h.
+ INSTALL_TOP= $(INSTALLDIR)
+ INSTALL_BIN= $(INSTALL_TOP)/bin
+-INSTALL_INC= $(INSTALL_TOP)/include
++INSTALL_INC= $(INSTALL_TOP)/include/lua-$V
+ INSTALL_LIB= $(INSTALL_TOP)/$(DIDBS_LIBDIR)
+-INSTALL_MAN= $(INSTALL_TOP)/man/man1
++INSTALL_MAN= $(INSTALL_TOP)/share/man/man1
+ INSTALL_LMOD= $(INSTALL_TOP)/share/lua/$V
+ INSTALL_CMOD= $(INSTALL_TOP)/$(DIDBS_LIBDIR)/lua/$V
+ 
+@@ -36,12 +36,12 @@ RM= rm -f
+ # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
+ 
+ # Convenience platforms targets.
+-PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
++PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris irix
+ 
+ # What to install.
+ TO_BIN= lua luac
+ TO_INC= lua.h luaconf.h lualib.h lauxlib.h lua.hpp
+-TO_LIB= liblua.a
++TO_LIB= liblua-5.3.so liblua.a
+ TO_MAN= lua.1 luac.1
+ 
+ # Lua version and release.
+Index: lua-5.3.5/src/Makefile
+===================================================================
+--- lua-5.3.5.orig/src/Makefile
++++ lua-5.3.5/src/Makefile
+@@ -6,9 +6,8 @@
+ # Your platform. See PLATS for possible values.
+ PLAT= none
+ 
+-CC=$(DIDBS_LUA_CC)
+-CFLAGS=$(DIDBS_LUA_CFLAGS) -Wall -Wextra -DLUA_COMPAT_5_2 -DLUA_USE_DLOPEN $(SYSCFLAGS) $(MYCFLAGS)
+-LDFLAGS= $(DIDBS_LUA_LDFLAGS) $(SYSLDFLAGS) $(MYLDFLAGS)
++CFLAGS:= $(CFLAGS) -Wall -Wextra -DLUA_COMPAT_5_2 $(SYSCFLAGS) $(MYCFLAGS)
++LDFLAGS:= $(LDFLAGS) $(SYSLDFLAGS) $(MYLDFLAGS)
+ LIBS= -lm $(SYSLIBS) $(MYLIBS)
+ 
+ AR= ar rcu
+@@ -24,9 +23,11 @@ MYLDFLAGS=
+ MYLIBS=
+ MYOBJS=
+ 
++XLIBS=
++
+ # == END OF USER SETTINGS -- NO NEED TO CHANGE ANYTHING BELOW THIS LINE =======
+ 
+-PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris
++PLATS= aix bsd c89 freebsd generic linux macosx mingw posix solaris irix
+ 
+ LUA_A=	liblua.a
+ CORE_O=	lapi.o lcode.o lctype.o ldebug.o ldo.o ldump.o lfunc.o lgc.o llex.o \
+@@ -59,11 +60,15 @@ $(LUA_A): $(BASE_O)
+ 	$(AR) $@ $(BASE_O)
+ 	$(RANLIB) $@
+ 
++liblua.a: $(BASE_O)
++	ar rcu $@ $(BASE_O)
++	ranlib $@
++
+ $(LUA_T): $(LUA_O) $(LUA_A)
+-	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS)
++	$(CC) -o $@ $(LDFLAGS) $(LUA_O) $(LUA_A) $(LIBS) $(XLIBS)
+ 
+ $(LUAC_T): $(LUAC_O) $(LUA_A)
+-	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(LUA_A) $(LIBS)
++	$(CC) -o $@ $(LDFLAGS) $(LUAC_O) $(BASE_O) $(LIBS) $(XLIBS)
+ 
+ clean:
+ 	$(RM) $(ALL_T) $(ALL_O)
+@@ -124,6 +129,9 @@ posix:
+ solaris:
+ 	$(MAKE) $(ALL) SYSCFLAGS="-DLUA_USE_POSIX -DLUA_USE_DLOPEN -D_REENTRANT" SYSLIBS="-ldl"
+ 
++irix:
++	$(MAKE) $(ALL) liblua.a "LUA_A=liblua-5.3.so" "AR=$(CC) -shared -ldl -o" "RANLIB=touch" SYSLIBS="-ldl" XLIBS="-lreadline -lncurses -ltinfo"
++
+ # list targets that do not create files (but not all makes understand .PHONY)
+ .PHONY: all $(PLATS) default o a clean depend echo none
+ 

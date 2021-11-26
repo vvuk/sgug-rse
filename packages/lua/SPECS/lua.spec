@@ -232,8 +232,8 @@ install -Dpm 0644 lua.pc $RPM_BUILD_ROOT%{_libdir}/pkgconfig/lua.pc
 %endif
 
 %files devel
-%{_includedir}/l*.h
-%{_includedir}/l*.hpp
+%{_includedir}/lua-%{major_version}/*.h
+%{_includedir}/lua-%{major_version}/*.hpp
 %{_libdir}/liblua.so
 %{_libdir}/pkgconfig/*.pc
 %{macrosdir}/macros.lua

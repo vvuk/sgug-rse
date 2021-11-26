@@ -1,0 +1,16 @@
+Index: libmpack-lua-1.0.8/Makefile
+===================================================================
+--- libmpack-lua-1.0.8.orig/Makefile
++++ libmpack-lua-1.0.8/Makefile
+@@ -42,11 +42,6 @@ PKG_CONFIG ?= pkg-config
+ CFLAGS ?= -ansi -O0 -g3 -Wall -Wextra -Werror -Wconversion \
+ 	-Wstrict-prototypes -Wno-unused-parameter -pedantic
+ CFLAGS += -fPIC -DMPACK_DEBUG_REGISTRY_LEAK
+-ifeq ($(MPACK_LUA_VERSION_NOPATCH),5.3)
+-# Lua 5.3 has integer type, which is not 64 bits for -ansi since c89 doesn't
+-# have `long long` type.
+-CFLAGS += -DLUA_C89_NUMBERS
+-endif
+ 
+ LUA_IMPL ?= lua-$(MPACK_LUA_VERSION_NOPATCH)
+ LUA_INCLUDE ?= $(shell $(PKG_CONFIG) --cflags $(LUA_IMPL) 2>/dev/null || echo "-I/usr/include/lua$(MPACK_LUA_VERSION_NOPATCH)")
