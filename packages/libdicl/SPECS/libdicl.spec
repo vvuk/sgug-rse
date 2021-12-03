@@ -10,10 +10,11 @@
 Summary: Dans Irix Compatibility Library
 Name: libdicl
 Version: 0.1.39
-Release: 1%{?dist}
+Release: 2%{?dist}
 License: GPLv3+
 URL: https://github.com/danielhams/dicl
 Source: https://github.com/danielhams/dicl/releases/download/%{version}/libdicl-%{version}.tar.gz
+Patch1000: dicl.getprognamefix.patch
 
 BuildRequires: gcc
 BuildRequires: automake, autoconf, libtool
@@ -32,7 +33,7 @@ libdicl-devel contains the header files and libraries needed
 to develop programs that use libdicl library.
 
 %prep
-%setup -q
+%autosetup -p1
 
 # A place to generate a patch
 #exit 1
