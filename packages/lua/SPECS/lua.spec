@@ -142,9 +142,8 @@ export LDFLAGS="-Wl,-z,relro -Wl,-z,now"
 
 cat %{SOURCE1010} | sed -e 's|LUA_MAJOR_VERSION|%{major_version}|g' -e 's|LUA_TEST_VERSION|%{test_version}|g' > lua.pc
 
-# we need this because irix strtod etc are broken
-export CFLAGS="$CFLAGS -O2 -g1 -I/usr/sgug/include/libdicl-0.1"
-export LDFLAGS="$LDFLAGS -ldicl-0.1 -ldl"
+export CFLAGS="$CFLAGS -O2 -g1"
+export LDFLAGS="$LDFLAGS -ldl"
 export DIDBS_LIBDIR=lib32
 
 make %{?_smp_mflags} irix
